@@ -2,14 +2,14 @@ import {
   SecretsManagerClient,
   GetSecretValueCommand,
 } from '@aws-sdk/client-secrets-manager';
-import { fromIni } from '@aws-sdk/credential-providers';
+import { fromInstanceMetadata } from '@aws-sdk/credential-providers';
 import { ConfigService } from '@nestjs/config';
 
 export const fetchSecrets = async (secretName: string) => {
   const configService = new ConfigService();
   const client = new SecretsManagerClient({
     region: configService.get('AWS_REGION'),
-    credentials: fromIni({ profile: 'default' }),
+    credentials: fromInstanceMetadata(),
   });
 
   try {
