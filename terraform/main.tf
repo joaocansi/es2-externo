@@ -35,9 +35,29 @@ resource "aws_security_group" "es2-externo" {
   }
 }
 
+data "aws_iam_policy_document" "instance_assume_role_policy" {
+  statement {
+    actions   = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
 resource "aws_iam_role" "es2-externo_role" {
   name = "es2_externo"
-  assume_role_policy = jsonencode({
+  assume_role_policy  = data.aws_iam_policy_document.instance_assume_role_policy.json
+}
+
+resource "aws_iam_role_policy_attachment" "es2-externo_role_policy_attachment" {
+  role       = aws_iam_role.es2-externo_role.name
+  policy_arn = aws_iam_policy.es2-externo_role_policy.arn
+}
+
+resource "aws_iam_policy" "es2-externo_role_policy" {
+  name = "es2-externo_role_policy"
+  policy = jsonencode({
     Version: "2012-10-17",
     Statement: [
       {
