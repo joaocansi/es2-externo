@@ -13,7 +13,7 @@ export type MicrosserviceError = {
 
 @Injectable()
 export default class AluguelMicrosservice {
-  constructor(private client: AxiosInstance) {}
+  constructor(private readonly client: AxiosInstance) {}
 
   async retrieveCartaoDeCredito(ciclistaId: number): Promise<CartaoDeCredito> {
     try {

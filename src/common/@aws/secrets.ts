@@ -12,14 +12,10 @@ export const fetchSecrets = async (secretName: string) => {
     credentials: fromInstanceMetadata(),
   });
 
-  try {
-    const response = await client.send(
-      new GetSecretValueCommand({
-        SecretId: secretName,
-      }),
-    );
-    return JSON.parse(response.SecretString);
-  } catch (error) {
-    throw error;
-  }
+  const response = await client.send(
+    new GetSecretValueCommand({
+      SecretId: secretName,
+    }),
+  );
+  return JSON.parse(response.SecretString);
 };

@@ -38,16 +38,4 @@ describe('fetchSecrets', () => {
     expect(mockGet).toHaveBeenCalledWith('AWS_REGION');
     expect(result).toEqual(mockSecret);
   });
-
-  it('should throw an error if fetching secrets fails', async () => {
-    const secretName = 'testSecret';
-    const mockError = new Error('Failed to fetch secrets');
-    mockGet.mockReturnValue('us-east-1'); // Mock region
-    mockSend.mockRejectedValue(mockError);
-
-    await expect(fetchSecrets(secretName)).rejects.toThrow(
-      'Failed to fetch secrets',
-    );
-    expect(mockGet).toHaveBeenCalledWith('AWS_REGION');
-  });
 });

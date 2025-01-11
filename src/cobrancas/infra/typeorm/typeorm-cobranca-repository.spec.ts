@@ -42,6 +42,26 @@ describe('TypeormCobrancaRepository', () => {
 
       expect(result).toEqual(cobrancaEntity);
     });
+
+    it('should save a cobranca entity as PENDENTE and return it', async () => {
+      const createCobranca = {
+        status: CobrancaStatus.PENDENTE,
+        valor: 100,
+        ciclista: 1,
+      };
+      const cobrancaEntity = new TypeormCobrancaEntity();
+      cobrancaEntity.id = 1;
+      cobrancaEntity.status = CobrancaStatus.PENDENTE;
+      cobrancaEntity.horaSolicitacao = new Date();
+      cobrancaEntity.horaFinalizacao = new Date();
+      cobrancaEntity.valor = createCobranca.valor;
+      cobrancaEntity.ciclista = createCobranca.ciclista;
+      jest.spyOn(ormRepository, 'save').mockResolvedValue(cobrancaEntity);
+
+      const result = await repository.save(createCobranca);
+
+      expect(result).toEqual(cobrancaEntity);
+    });
   });
 
   describe('findById', () => {

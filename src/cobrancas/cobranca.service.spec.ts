@@ -86,9 +86,23 @@ describe('CobrancaService', () => {
   });
 
   describe('createCobranca', () => {
-    it('should create a new cobrança', async () => {
+    it('should create a new cobrança PENDENTE', async () => {
       const createCobrancaDto = { valor: 100, ciclista: 1 };
       cobrancaEntity.status = CobrancaStatus.PENDENTE;
+
+      jest
+        .spyOn(cobrancaRepositoryMock, 'save')
+        .mockResolvedValue(cobrancaEntity);
+
+      const result = await service.createCobranca(createCobrancaDto);
+      expect(result).toEqual(CobrancaEntity.toDomain(cobrancaEntity));
+    });
+
+    it('should create a new cobrança PENDENTE', async () => {
+      const createCobrancaDto = { valor: 100, ciclista: 1 };
+      cobrancaEntity.status = CobrancaStatus.PENDENTE;
+
+      jest.spyOn(gatewayServiceMock, 'charge').mockResolvedValue(true);
 
       jest
         .spyOn(cobrancaRepositoryMock, 'save')

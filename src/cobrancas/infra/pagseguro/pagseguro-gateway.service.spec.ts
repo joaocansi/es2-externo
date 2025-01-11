@@ -55,7 +55,7 @@ describe('PagseguroGatewayService', () => {
     });
   });
 
-  describe('createPayment', () => {
+  describe('charge', () => {
     it('should return true if payment creation is successful', async () => {
       jest.spyOn(pagseguroClient, 'post').mockResolvedValueOnce({
         data: { id: 'charge-id', status: 'AUTHORIZED' },
@@ -63,6 +63,15 @@ describe('PagseguroGatewayService', () => {
 
       const result = await service.charge(cartaoDeCredito, 100);
       expect(result).toBe(true);
+    });
+
+    it('should return false if payment creation fails', async () => {
+      jest.spyOn(pagseguroClient, 'post').mockResolvedValueOnce({
+        data: { id: 'charge-id', status: 'UNAUTHORIZED' },
+      });
+
+      const result = await service.charge(cartaoDeCredito, 100);
+      expect(result).toBe(false);
     });
 
     it('should return false if payment creation fails', async () => {
