@@ -13,6 +13,6 @@ export type UpdateCobranca = {
 export interface CobrancaRepository {
   save(cobranca: CreateCobranca): Promise<CobrancaEntity>;
   findById(id: number): Promise<CobrancaEntity>;
-  getCobrancasPendentes(): Promise<CobrancaEntity[]>;
+  getCobrancasToBePaid(): Promise<CobrancaEntity[]>;
   update(id: number, cobranca: UpdateCobranca): Promise<void>;
 }

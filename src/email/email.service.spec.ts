@@ -25,10 +25,6 @@ describe('EmailService', () => {
     mailerService = module.get<MailerService>('MailerService');
   });
 
-  it('should be defined', () => {
-    expect(emailService).toBeDefined();
-  });
-
   it('should call mailerService.sendEmail with correct parameters', async () => {
     const sendEmailDto: SendEmailDto = {
       email: 'test@example.com',

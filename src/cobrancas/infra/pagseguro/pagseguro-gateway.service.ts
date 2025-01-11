@@ -1,8 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AxiosInstance } from 'axios';
 import GatewayService, {
   CartaoDeCredito,
-} from 'src/pagamentos/domain/gateway.service';
+} from 'src/cobrancas/domain/gateway.service';
 
 enum PagseguroPaymentStatus {
   AUTHORIZED = 'AUTHORIZED',
@@ -17,24 +17,21 @@ type PagseguroPaymentResponse = {
 
 @Injectable()
 export default class PagseguroGatewayService implements GatewayService {
-  constructor(
-    @Inject('AxiosClient')
-    private readonly axiosClient: AxiosInstance,
-  ) {}
+  constructor(private readonly pagseguroClient: AxiosInstance) {}
 
   async isCartaoDeCreditoValid(
     cartaoDeCredito: CartaoDeCredito,
   ): Promise<boolean> {
     const priceValidation = 100;
-    const requestBody = this.createPaymentObject(
+    const requestBody = this.createChargeObject(
       cartaoDeCredito,
       priceValidation,
     );
 
     try {
-      const response = await this.axiosClient.post('/charges', requestBody);
+      const response = await this.pagseguroClient.post('/charges', requestBody);
       const paymentResponse = this.processPaymentChargeResponse(response.data);
-      await this.axiosClient.post(
+      await this.pagseguroClient.post(
         '/charges/' + paymentResponse.id + '/cancel',
         {
           amount: {
@@ -48,24 +45,22 @@ export default class PagseguroGatewayService implements GatewayService {
     }
   }
 
-  async createPayment(
+  async charge(
     cartaoDeCredito: CartaoDeCredito,
     price: number,
   ): Promise<boolean> {
-    const requestBody = this.createPaymentObject(cartaoDeCredito, price);
+    const requestBody = this.createChargeObject(cartaoDeCredito, price);
     try {
-      const response = await this.axiosClient.post('/charges', requestBody);
-
+      const response = await this.pagseguroClient.post('/charges', requestBody);
       const paymentProcessed = this.processPaymentChargeResponse(response.data);
-      if (paymentProcessed.status !== 'AUTHORIZED') throw new Error();
-
+      if (paymentProcessed.status !== 'AUTHORIZED') return false;
       return true;
     } catch {
       return false;
     }
   }
 
-  createPaymentObject(cartaoDeCredito: CartaoDeCredito, price: number) {
+  createChargeObject(cartaoDeCredito: CartaoDeCredito, price: number) {
     const exp = cartaoDeCredito.validade.split('/');
     const requestBody = {
       reference_id: 'ex-00001',

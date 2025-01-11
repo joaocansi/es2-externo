@@ -1,19 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import PagamentoService from './pagamento.service';
 import { CobrancaRepository } from './domain/cobranca.repository';
 import { CobrancaEntity } from './domain/cobranca.entity';
+import PagamentoService from './cobranca.service';
 import Cobranca, { CobrancaStatus } from './domain/cobranca';
-import ValidaCartaoDeCreditoDto from './dto/valida-cartao-de-credito.dto';
 import GatewayService, { CartaoDeCredito } from './domain/gateway.service';
-import { AxiosInstance } from 'axios';
-import { CartaoDeCreditoService } from 'src/common/utils/cartao-de-credito.service';
+import AluguelMicrosservice from 'src/common/integrations/aluguel.microsservice';
+import CobrancaService from './cobranca.service';
+import ValidateCartaoDeCreditoDto from './dto/validate-cartao-de-credito.dto';
 
-describe('PagamentoService', () => {
+describe('CobrancaService', () => {
   let service: PagamentoService;
   let cobrancaRepositoryMock: CobrancaRepository;
-  let cartaoDeCreditoServiceMock: CartaoDeCreditoService;
   let gatewayServiceMock: GatewayService;
-  let axiosClient: Partial<AxiosInstance>;
+  let aluguelMicrosservice: AluguelMicrosservice;
 
   let cobrancaEntity: CobrancaEntity;
   let cobranca: Cobranca;
@@ -21,24 +20,20 @@ describe('PagamentoService', () => {
   let cartaoDeCredito: CartaoDeCredito;
 
   beforeEach(async () => {
+    aluguelMicrosservice = {
+      retrieveCartaoDeCredito: jest.fn(),
+    } as unknown as AluguelMicrosservice;
+
     cobrancaRepositoryMock = {
       findById: jest.fn(),
       save: jest.fn(),
-      getCobrancasPendentes: jest.fn(),
+      getCobrancasToBePaid: jest.fn(),
       update: jest.fn(),
     };
 
     gatewayServiceMock = {
       isCartaoDeCreditoValid: jest.fn(),
-      createPayment: jest.fn(),
-    };
-
-    axiosClient = {
-      post: jest.fn(),
-    };
-
-    cartaoDeCreditoServiceMock = {
-      getCartaoDeCredito: jest.fn(),
+      charge: jest.fn(),
     };
 
     cartaoDeCredito = {
@@ -61,17 +56,10 @@ describe('PagamentoService', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        PagamentoService,
-        {
-          provide: CartaoDeCreditoService,
-          useValue: cartaoDeCreditoServiceMock,
-        },
+        CobrancaService,
+        { provide: 'AluguelMicrosservice', useValue: aluguelMicrosservice },
         { provide: 'CobrancaRepository', useValue: cobrancaRepositoryMock },
         { provide: 'GatewayService', useValue: gatewayServiceMock },
-        {
-          provide: 'AxiosClient',
-          useValue: axiosClient,
-        },
       ],
     }).compile();
 
@@ -111,9 +99,9 @@ describe('PagamentoService', () => {
     });
   });
 
-  describe('validarCartaoDeCredito', () => {
+  describe('validaCartaoDeCredito', () => {
     it('should validate cartao de credito', async () => {
-      const validaCartaoDeCreditoDto: ValidaCartaoDeCreditoDto = {
+      const validateCartaoDeCreditoDto: ValidateCartaoDeCreditoDto = {
         nomeTitular: 'John Doe',
         numero: '1234567890123456',
         validade: '12/24',
@@ -124,15 +112,15 @@ describe('PagamentoService', () => {
         .spyOn(gatewayServiceMock, 'isCartaoDeCreditoValid')
         .mockResolvedValue(true);
 
-      await service.validarCartaoDeCredito(validaCartaoDeCreditoDto);
+      await service.validateCartaoDeCredito(validateCartaoDeCreditoDto);
 
       expect(spyIsCartaoDeCreditoValido).toHaveBeenCalledWith(
-        validaCartaoDeCreditoDto,
+        validateCartaoDeCreditoDto,
       );
     });
 
     it('should throw an error if validation failed', async () => {
-      const validaCartaoDeCreditoDto: ValidaCartaoDeCreditoDto = {
+      const validateCartaoDeCreditoDto: ValidateCartaoDeCreditoDto = {
         nomeTitular: 'John Doe',
         numero: '1234567890123456',
         validade: '12/24',
@@ -144,7 +132,7 @@ describe('PagamentoService', () => {
         .mockResolvedValue(false);
 
       await expect(
-        service.validarCartaoDeCredito(validaCartaoDeCreditoDto),
+        service.validateCartaoDeCredito(validateCartaoDeCreditoDto),
       ).rejects.toThrow(
         new Error('Não foi possível validar cartão de crédito'),
       );
@@ -154,17 +142,17 @@ describe('PagamentoService', () => {
   describe('processaCobranca', () => {
     it('should process queued cobrancas', async () => {
       jest
-        .spyOn(cobrancaRepositoryMock, 'getCobrancasPendentes')
+        .spyOn(cobrancaRepositoryMock, 'getCobrancasToBePaid')
         .mockResolvedValue([cobrancaEntity]);
 
       jest
-        .spyOn(cartaoDeCreditoServiceMock, 'getCartaoDeCredito')
-        .mockReturnValue(cartaoDeCredito);
+        .spyOn(aluguelMicrosservice, 'retrieveCartaoDeCredito')
+        .mockResolvedValue(cartaoDeCredito);
 
-      jest.spyOn(gatewayServiceMock, 'createPayment').mockResolvedValue(true);
+      jest.spyOn(gatewayServiceMock, 'charge').mockResolvedValue(true);
       jest.spyOn(cobrancaRepositoryMock, 'update').mockResolvedValue();
 
-      const result = await service.processaCobranca();
+      const result = await service.processCobranca();
 
       expect(result).toHaveLength(1);
       expect(result[0].status).toBe(CobrancaStatus.PAGA);
@@ -172,16 +160,16 @@ describe('PagamentoService', () => {
 
     it('should ignore cobrancas not paid', async () => {
       jest
-        .spyOn(cobrancaRepositoryMock, 'getCobrancasPendentes')
+        .spyOn(cobrancaRepositoryMock, 'getCobrancasToBePaid')
         .mockResolvedValue([cobrancaEntity]);
 
       jest
-        .spyOn(cartaoDeCreditoServiceMock, 'getCartaoDeCredito')
-        .mockReturnValue(cartaoDeCredito);
+        .spyOn(aluguelMicrosservice, 'retrieveCartaoDeCredito')
+        .mockResolvedValue(cartaoDeCredito);
 
-      jest.spyOn(gatewayServiceMock, 'createPayment').mockResolvedValue(false);
+      jest.spyOn(gatewayServiceMock, 'charge').mockResolvedValue(false);
 
-      const result = await service.processaCobranca();
+      const result = await service.processCobranca();
 
       expect(result).toHaveLength(0);
       expect(cobrancaRepositoryMock.update).not.toHaveBeenCalled();

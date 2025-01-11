@@ -1,7 +1,7 @@
 export enum CobrancaStatus {
   PENDENTE = 'PENDENTE',
   PAGA = 'PAGA',
-  CANCELADA = 'CANCELADA',
+  FALHA = 'FALHA',
 }
 
 export default class Cobranca {

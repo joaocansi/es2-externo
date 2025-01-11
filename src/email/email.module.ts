@@ -16,5 +16,6 @@ import { MailerServiceImpl } from './infra/external/mailer-service-impl';
       inject: [NodemailerService],
     },
   ],
+  exports: ['MailerService'],
 })
 export default class EmailModule {}

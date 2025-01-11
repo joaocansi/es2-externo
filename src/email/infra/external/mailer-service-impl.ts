@@ -1,5 +1,5 @@
 import { MailerService as NodemailerService } from '@nestjs-modules/mailer';
-import { AppError, AppErrorType } from 'src/common/domain/app-error';
+import { BadRequestException } from '@nestjs/common';
 import Email from 'src/email/domain/email';
 import { MailerService } from 'src/email/domain/mailer-service';
 
@@ -8,6 +8,13 @@ export class MailerServiceImpl implements MailerService {
 
   constructor(private readonly nodemailer: NodemailerService) {
     this.emails = [];
+  }
+
+  deleteAll(): Promise<void> {
+    return new Promise((resolve) => {
+      this.emails = [];
+      resolve();
+    });
   }
 
   async sendEmail(to: string, subject: string, body: string): Promise<Email> {
@@ -26,12 +33,8 @@ export class MailerServiceImpl implements MailerService {
       this.emails.push(email);
 
       return email;
-    } catch (error) {
-      console.log(error);
-      throw new AppError(
-        'Não foi possível enviar e-email',
-        AppErrorType.EXTERNAL_SERVICE_ERROR,
-      );
+    } catch {
+      throw new BadRequestException('Não foi possível enviar e-email');
     }
   }
 }

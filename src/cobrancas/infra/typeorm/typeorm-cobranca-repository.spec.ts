@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
 import { TypeormCobrancaEntity } from './typeorm-cobranca.entity';
-import { CobrancaStatus } from 'src/pagamentos/domain/cobranca';
+import { CobrancaStatus } from 'src/cobrancas/domain/cobranca';
 import { TypeormCobrancaRepository } from './typeorm-cobranca-repository';
 
 describe('TypeormCobrancaRepository', () => {

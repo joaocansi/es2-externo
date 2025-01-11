@@ -1,4 +1,4 @@
-import { CobrancaStatus } from 'src/pagamentos/domain/cobranca';
+import { CobrancaStatus } from 'src/cobrancas/domain/cobranca';
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity('cobrancas')

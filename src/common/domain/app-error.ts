@@ -12,3 +12,14 @@ export class AppError extends Error {
     super(message);
   }
 }
+
+export const appErrorTypeFromCode = (code: number) => {
+  switch (code) {
+    case 404:
+      return AppErrorType.RESOURCE_NOT_FOUND;
+    case 409:
+      return AppErrorType.RESOURCE_CONFLICT;
+    default:
+      return AppErrorType.EXTERNAL_SERVICE_ERROR;
+  }
+};

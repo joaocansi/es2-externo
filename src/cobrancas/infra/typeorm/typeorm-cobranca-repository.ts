@@ -2,11 +2,11 @@ import {
   CobrancaRepository,
   CreateCobranca,
   UpdateCobranca,
-} from 'src/pagamentos/domain/cobranca.repository';
+} from 'src/cobrancas/domain/cobranca.repository';
 import { TypeormCobrancaEntity } from './typeorm-cobranca.entity';
-import { Repository } from 'typeorm';
-import { CobrancaEntity } from 'src/pagamentos/domain/cobranca.entity';
-import { CobrancaStatus } from 'src/pagamentos/domain/cobranca';
+import { Equal, Or, Repository } from 'typeorm';
+import { CobrancaEntity } from 'src/cobrancas/domain/cobranca.entity';
+import { CobrancaStatus } from 'src/cobrancas/domain/cobranca';
 
 export class TypeormCobrancaRepository implements CobrancaRepository {
   constructor(
@@ -17,9 +17,11 @@ export class TypeormCobrancaRepository implements CobrancaRepository {
     await this.ormRepository.update(id, cobranca);
   }
 
-  async getCobrancasPendentes(): Promise<CobrancaEntity[]> {
+  async getCobrancasToBePaid(): Promise<CobrancaEntity[]> {
     return this.ormRepository.find({
-      where: { status: CobrancaStatus.PENDENTE },
+      where: {
+        status: Or(Equal(CobrancaStatus.PENDENTE), Equal(CobrancaStatus.FALHA)),
+      },
     });
   }
 

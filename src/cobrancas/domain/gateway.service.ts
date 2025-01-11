@@ -7,8 +7,5 @@ export type CartaoDeCredito = {
 
 export default interface GatewayService {
   isCartaoDeCreditoValid(cartaoDeCredito: CartaoDeCredito): Promise<boolean>;
-  createPayment(
-    cartaoDeCredito: CartaoDeCredito,
-    price: number,
-  ): Promise<boolean>;
+  charge(cartaoDeCredito: CartaoDeCredito, price: number): Promise<boolean>;
 }

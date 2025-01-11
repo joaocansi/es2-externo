@@ -3,7 +3,6 @@ import { CobrancaEntity } from './cobranca.entity';
 
 describe('CobrancaEntity', () => {
   it('should correctly map CobrancaEntity to Cobranca domain object', () => {
-    // Dados de entrada simulados
     const cobrancaEntity = new CobrancaEntity();
     cobrancaEntity.id = 1;
     cobrancaEntity.status = CobrancaStatus.PENDENTE; // Supondo que PENDENTE seja um valor válido do enum CobrancaStatus
@@ -12,10 +11,8 @@ describe('CobrancaEntity', () => {
     cobrancaEntity.valor = 100.5;
     cobrancaEntity.ciclista = 123;
 
-    // Chamando o método toDomain
     const cobranca = CobrancaEntity.toDomain(cobrancaEntity);
 
-    // Verificando se o mapeamento é feito corretamente
     expect(cobranca.id).toBe(cobrancaEntity.id);
     expect(cobranca.status).toBe(cobrancaEntity.status);
     expect(cobranca.valor).toBe(cobrancaEntity.valor);

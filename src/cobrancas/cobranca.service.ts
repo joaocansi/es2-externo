@@ -1,38 +1,45 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CobrancaRepository } from './domain/cobranca.repository';
 import { CobrancaEntity } from './domain/cobranca.entity';
-import ValidaCartaoDeCreditoDto from './dto/valida-cartao-de-credito.dto';
-import GatewayService from './domain/gateway.service';
-import { AppError, AppErrorType } from 'src/common/domain/app-error';
 import { CreateCobrancaDto } from './dto/create-cobranca.dto';
-import { CobrancaStatus } from './domain/cobranca';
-import { CartaoDeCreditoService } from 'src/common/utils/cartao-de-credito.service';
+import Cobranca, { CobrancaStatus } from './domain/cobranca';
+import GatewayService from './domain/gateway.service';
+import AluguelMicrosservice from 'src/common/integrations/aluguel.microsservice';
+import ValidateCartaoDeCreditoDto from './dto/validate-cartao-de-credito.dto';
 
 @Injectable()
-export default class PagamentoService {
+export default class CobrancaService {
   constructor(
-    @Inject('CobrancaRepository')
-    private readonly cobrancaRepository: CobrancaRepository,
     @Inject('GatewayService')
     private readonly gatewayService: GatewayService,
-    private readonly cartaoDeCreditoService: CartaoDeCreditoService,
+    @Inject('CobrancaRepository')
+    private readonly cobrancaRepository: CobrancaRepository,
+    @Inject('AluguelMicrosservice')
+    private readonly aluguelMicrosservice: AluguelMicrosservice,
   ) {}
-  async processaCobranca() {
-    const cobrancasPagas = [];
-    const cobrancasPendentes =
-      await this.cobrancaRepository.getCobrancasPendentes();
 
-    for (const cobranca of cobrancasPendentes) {
-      const cartaoDeCredito = this.cartaoDeCreditoService.getCartaoDeCredito(
-        cobranca.ciclista,
-      );
+  async processCobranca(): Promise<Cobranca[]> {
+    const cobrancasPagas: Cobranca[] = [];
+    const cobrancasToBePaid =
+      await this.cobrancaRepository.getCobrancasToBePaid();
 
-      const resultadoCobranca = await this.gatewayService.createPayment(
+    for (const cobranca of cobrancasToBePaid) {
+      const cartaoDeCredito =
+        await this.aluguelMicrosservice.retrieveCartaoDeCredito(
+          cobranca.ciclista,
+        );
+
+      const resultCobranca = await this.gatewayService.charge(
         cartaoDeCredito,
         cobranca.valor,
       );
 
-      if (!resultadoCobranca) {
+      if (!resultCobranca) {
         continue;
       }
 
@@ -45,7 +52,7 @@ export default class PagamentoService {
     return cobrancasPagas;
   }
 
-  async filaCobranca(createCobrancaDto: CreateCobrancaDto) {
+  async queueCobranca(createCobrancaDto: CreateCobrancaDto): Promise<Cobranca> {
     const cobranca = await this.cobrancaRepository.save({
       ...createCobrancaDto,
       status: CobrancaStatus.PENDENTE,
@@ -55,21 +62,17 @@ export default class PagamentoService {
 
   async getCobranca(idCobranca: number) {
     const cobranca = await this.cobrancaRepository.findById(idCobranca);
-    if (!cobranca) {
-      throw new AppError(
-        'Cobranca não encontrada',
-        AppErrorType.RESOURCE_NOT_FOUND,
-      );
-    }
+    if (!cobranca) throw new NotFoundException('Cobranca não encontrada');
     return CobrancaEntity.toDomain(cobranca);
   }
 
   async createCobranca(createCobrancaDto: CreateCobrancaDto) {
-    const cartaoDeCredito = this.cartaoDeCreditoService.getCartaoDeCredito(
-      createCobrancaDto.ciclista,
-    );
+    const cartaoDeCredito =
+      await this.aluguelMicrosservice.retrieveCartaoDeCredito(
+        createCobrancaDto.ciclista,
+      );
 
-    const resultadoCobranca = await this.gatewayService.createPayment(
+    const resultadoCobranca = await this.gatewayService.charge(
       cartaoDeCredito,
       createCobrancaDto.valor,
     );
@@ -89,17 +92,16 @@ export default class PagamentoService {
     return CobrancaEntity.toDomain(cobranca);
   }
 
-  async validarCartaoDeCredito(
-    validaCartaoDeCreditoDto: ValidaCartaoDeCreditoDto,
+  async validateCartaoDeCredito(
+    validateCartaoDeCreditoDto: ValidateCartaoDeCreditoDto,
   ) {
     const validationResult = await this.gatewayService.isCartaoDeCreditoValid(
-      validaCartaoDeCreditoDto,
+      validateCartaoDeCreditoDto,
     );
 
     if (!validationResult) {
-      throw new AppError(
+      throw new BadRequestException(
         'Não foi possível validar cartão de crédito',
-        AppErrorType.EXTERNAL_SERVICE_ERROR,
       );
     }
   }

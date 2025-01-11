@@ -1,24 +1,24 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import Cobranca, { CobrancaStatus } from './domain/cobranca';
 import { CreateCobrancaDto } from './dto/create-cobranca.dto';
-import PagamentoController from './pagamento.controller';
-import PagamentoService from './pagamento.service';
-import ValidaCartaoDeCreditoDto from './dto/valida-cartao-de-credito.dto';
+import CobrancaController from './cobranca.controller';
+import CobrancaService from './cobranca.service';
+import ValidaCartaoDeCreditoDto from './dto/validate-cartao-de-credito.dto';
 
-describe('PagamentoController', () => {
-  let pagamentoController: PagamentoController;
-  let mockPagamentoService: PagamentoService;
+describe('CobrancaController', () => {
+  let cobrancaController: CobrancaController;
+  let mockCobrancaService: CobrancaService;
 
   let cobranca: Cobranca;
 
   beforeEach(async () => {
-    mockPagamentoService = {
+    mockCobrancaService = {
       createCobranca: jest.fn(),
       getCobranca: jest.fn(),
-      validarCartaoDeCredito: jest.fn(),
-      filaCobranca: jest.fn(),
-      processaCobranca: jest.fn(),
-    } as unknown as PagamentoService;
+      validateCartaoDeCredito: jest.fn(),
+      queueCobranca: jest.fn(),
+      processCobranca: jest.fn(),
+    } as unknown as CobrancaService;
 
     cobranca = {
       id: 1,
@@ -30,16 +30,16 @@ describe('PagamentoController', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [PagamentoController],
+      controllers: [CobrancaController],
       providers: [
         {
-          provide: PagamentoService,
-          useValue: mockPagamentoService,
+          provide: 'CobrancaService',
+          useValue: mockCobrancaService,
         },
       ],
     }).compile();
 
-    pagamentoController = module.get<PagamentoController>(PagamentoController);
+    cobrancaController = module.get<CobrancaController>(CobrancaController);
   });
 
   describe('createCobranca', () => {
@@ -50,14 +50,14 @@ describe('PagamentoController', () => {
       };
 
       jest
-        .spyOn(mockPagamentoService, 'createCobranca')
+        .spyOn(mockCobrancaService, 'createCobranca')
         .mockResolvedValue(cobranca);
 
       await expect(
-        pagamentoController.createCobranca(createCobrancaDto),
+        cobrancaController.createCobranca(createCobrancaDto),
       ).resolves.toBe(cobranca);
 
-      expect(mockPagamentoService.createCobranca).toHaveBeenCalledWith(
+      expect(mockCobrancaService.createCobranca).toHaveBeenCalledWith(
         createCobrancaDto,
       );
     });
@@ -66,10 +66,10 @@ describe('PagamentoController', () => {
   describe('getCobranca', () => {
     it('should return a cobranca by id', async () => {
       jest
-        .spyOn(mockPagamentoService, 'getCobranca')
+        .spyOn(mockCobrancaService, 'getCobranca')
         .mockResolvedValue(cobranca);
-      expect(await pagamentoController.getCobranca(1)).toBe(cobranca);
-      expect(mockPagamentoService.getCobranca).toHaveBeenCalledWith(1);
+      expect(await cobrancaController.getCobranca(1)).toBe(cobranca);
+      expect(mockCobrancaService.getCobranca).toHaveBeenCalledWith(1);
     });
   });
 
@@ -83,13 +83,13 @@ describe('PagamentoController', () => {
       };
 
       jest
-        .spyOn(mockPagamentoService, 'validarCartaoDeCredito')
+        .spyOn(mockCobrancaService, 'validateCartaoDeCredito')
         .mockResolvedValue(undefined);
 
       await expect(
-        pagamentoController.validaCartaoDeCredito(validaCartaoDeCreditoDto),
+        cobrancaController.validateCartaoDeCredito(validaCartaoDeCreditoDto),
       ).resolves.toBeUndefined();
-      expect(mockPagamentoService.validarCartaoDeCredito).toHaveBeenCalledWith(
+      expect(mockCobrancaService.validateCartaoDeCredito).toHaveBeenCalledWith(
         validaCartaoDeCreditoDto,
       );
     });
@@ -104,13 +104,13 @@ describe('PagamentoController', () => {
       };
 
       jest
-        .spyOn(mockPagamentoService, 'filaCobranca')
+        .spyOn(mockCobrancaService, 'queueCobranca')
         .mockResolvedValue(cobranca);
 
       await expect(
-        pagamentoController.filaCobranca(filaCobrancaDto),
+        cobrancaController.queueCobranca(filaCobrancaDto),
       ).resolves.toBe(cobranca);
-      expect(mockPagamentoService.filaCobranca).toHaveBeenCalledWith(
+      expect(mockCobrancaService.queueCobranca).toHaveBeenCalledWith(
         filaCobrancaDto,
       );
     });
@@ -121,13 +121,13 @@ describe('PagamentoController', () => {
       cobranca.status = CobrancaStatus.PAGA;
 
       jest
-        .spyOn(mockPagamentoService, 'processaCobranca')
+        .spyOn(mockCobrancaService, 'processCobranca')
         .mockResolvedValue([cobranca]);
 
-      await expect(
-        pagamentoController.processaCobranca(),
-      ).resolves.toStrictEqual([cobranca]);
-      expect(mockPagamentoService.processaCobranca).toHaveBeenCalled();
+      await expect(cobrancaController.processCobranca()).resolves.toStrictEqual(
+        [cobranca],
+      );
+      expect(mockCobrancaService.processCobranca).toHaveBeenCalled();
     });
   });
 });

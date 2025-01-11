@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString, Matches } from 'class-validator';
 
-export default class ValidaCartaoDeCreditoDto {
+export default class ValidateCartaoDeCreditoDto {
   @IsString()
   @IsNotEmpty()
   nomeTitular: string;
