@@ -85,6 +85,25 @@ describe('CobrancaService', () => {
     });
   });
 
+  describe('queueCobranca', () => {
+    it('should queue cobranca', async () => {
+      cobrancaEntity.horaFinalizacao = null;
+      cobrancaEntity.status = CobrancaStatus.PENDENTE;
+
+      cobranca = CobrancaEntity.toDomain(cobrancaEntity);
+
+      jest
+        .spyOn(cobrancaRepositoryMock, 'save')
+        .mockResolvedValue(cobrancaEntity);
+
+      const result = await service.queueCobranca({
+        ciclista: cobrancaEntity.ciclista,
+        valor: cobrancaEntity.valor,
+      });
+      expect(result).toEqual(cobranca);
+    });
+  });
+
   describe('createCobranca', () => {
     it('should create a new cobrança PENDENTE', async () => {
       const createCobrancaDto = { valor: 100, ciclista: 1 };
