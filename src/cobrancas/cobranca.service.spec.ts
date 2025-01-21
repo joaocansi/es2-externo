@@ -191,7 +191,9 @@ describe('CobrancaService', () => {
       expect(result[0].status).toBe(CobrancaStatus.PAGA);
     });
 
-    it('should ignore cobrancas not paid', async () => {
+    it('should ignore cobranca', async () => {
+      cobrancaEntity.status = CobrancaStatus.FALHA;
+
       jest
         .spyOn(cobrancaRepositoryMock, 'getCobrancasToBePaid')
         .mockResolvedValue([cobrancaEntity]);
@@ -206,6 +208,25 @@ describe('CobrancaService', () => {
 
       expect(result).toHaveLength(0);
       expect(cobrancaRepositoryMock.update).not.toHaveBeenCalled();
+    });
+
+    it('should update failed cobranca', async () => {
+      cobrancaEntity.status = CobrancaStatus.PENDENTE;
+
+      jest
+        .spyOn(cobrancaRepositoryMock, 'getCobrancasToBePaid')
+        .mockResolvedValue([cobrancaEntity]);
+
+      jest
+        .spyOn(aluguelMicrosservice, 'retrieveCartaoDeCredito')
+        .mockResolvedValue(cartaoDeCredito);
+
+      jest.spyOn(gatewayServiceMock, 'charge').mockResolvedValue(false);
+
+      const result = await service.processCobranca();
+
+      expect(result).toHaveLength(0);
+      expect(cobrancaRepositoryMock.update).toHaveBeenCalled();
     });
   });
 });

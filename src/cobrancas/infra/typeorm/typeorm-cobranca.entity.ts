@@ -11,7 +11,7 @@ export class TypeormCobrancaEntity {
   horaSolicitacao: Date;
   @Column({ nullable: true })
   horaFinalizacao: Date;
-  @Column()
+  @Column({ type: 'float' })
   valor: number;
   @Column()
   ciclista: number;

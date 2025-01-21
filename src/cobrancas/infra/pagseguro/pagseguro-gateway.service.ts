@@ -50,6 +50,7 @@ export default class PagseguroGatewayService implements GatewayService {
     price: number,
   ): Promise<boolean> {
     const requestBody = this.createChargeObject(cartaoDeCredito, price);
+
     try {
       const response = await this.pagseguroClient.post('/charges', requestBody);
       const paymentProcessed = this.processPaymentChargeResponse(response.data);
@@ -61,12 +62,12 @@ export default class PagseguroGatewayService implements GatewayService {
   }
 
   createChargeObject(cartaoDeCredito: CartaoDeCredito, price: number) {
-    const exp = cartaoDeCredito.validade.split('/');
+    const exp = cartaoDeCredito.validade.split('-');
     const requestBody = {
       reference_id: 'ex-00001',
       description: 'Motivo do pagamento',
       amount: {
-        value: price,
+        value: price * 100,
         currency: 'BRL',
       },
       payment_method: {
@@ -75,8 +76,8 @@ export default class PagseguroGatewayService implements GatewayService {
         capture: false,
         card: {
           number: cartaoDeCredito.numero,
-          exp_month: exp[0],
-          exp_year: exp[1],
+          exp_month: exp[1],
+          exp_year: exp[0],
           security_code: cartaoDeCredito.cvv,
           holder: {
             name: cartaoDeCredito.nomeTitular,

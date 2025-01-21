@@ -34,12 +34,18 @@ export default class CobrancaService {
           cobranca.ciclista,
         );
 
+      console.log(cartaoDeCredito);
+
       const resultCobranca = await this.gatewayService.charge(
         cartaoDeCredito,
         cobranca.valor,
       );
 
       if (!resultCobranca) {
+        if (cobranca.status !== CobrancaStatus.FALHA) {
+          cobranca.status = CobrancaStatus.FALHA;
+          await this.cobrancaRepository.update(cobranca.id, cobranca);
+        }
         continue;
       }
 

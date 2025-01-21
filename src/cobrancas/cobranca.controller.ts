@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Inject,
   Param,
   ParseIntPipe,
@@ -45,6 +46,7 @@ export default class CobrancaController {
   }
 
   @Post('/processaCobrancasEmFila')
+  @HttpCode(200)
   async processCobranca(): Promise<Cobranca[]> {
     return this.cobrancaService.processCobranca();
   }
