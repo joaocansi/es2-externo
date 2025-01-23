@@ -6,7 +6,7 @@ terraform {
     }
   }
   backend "s3" {
-    bucket = "nestjs-app-terraform-states"
+    bucket = "nestjs-app-terraform-states-01"
     region = "us-east-1"
     acl    = "bucket-owner-full-control"
     key    = "apps/ec2-es2-externo.tfstate"
@@ -68,7 +68,7 @@ resource "aws_iam_policy" "es2-externo_role_policy" {
           "secretsmanager:ListSecrets",
           "secretsmanager:ListSecretVersionIds"
         ],
-        Resource: "arn:aws:secretsmanager:us-east-1:730335577197:secret:prod/es2-externo-9hj4Yx"
+        Resource: "arn:aws:secretsmanager:us-east-1:235494792024:secret:prod/es2-externo-KcNz1P"
       },
       {
         "Effect": "Allow",
@@ -87,7 +87,7 @@ resource "aws_iam_instance_profile" "es2-externo_role_profile" {
 resource "aws_instance" "es2-externo" {
   ami           = "ami-006dcf34c09e50022"
   instance_type = "t2.micro"
-  key_name      = "ec2"
+  key_name      = "es2-externo"
   iam_instance_profile = "${aws_iam_instance_profile.es2-externo_role_profile.name}"
   vpc_security_group_ids = [aws_security_group.es2-externo.id]
   user_data = base64encode(templatefile("setup.sh.tpl", {
