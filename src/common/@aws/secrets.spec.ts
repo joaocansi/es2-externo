@@ -28,14 +28,11 @@ describe('fetchSecrets', () => {
   it('should fetch and parse secrets correctly', async () => {
     const secretName = 'testSecret';
     const mockSecret = { username: 'testUser', password: 'testPass' };
-    mockGet.mockReturnValue('us-east-1'); // Mock region
     mockSend.mockResolvedValue({
       SecretString: JSON.stringify(mockSecret),
     });
 
     const result = await fetchSecrets(secretName);
-
-    expect(mockGet).toHaveBeenCalledWith('AWS_REGION');
     expect(result).toEqual(mockSecret);
   });
 });

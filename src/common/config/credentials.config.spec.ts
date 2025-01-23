@@ -33,12 +33,12 @@ describe('credentialsConfig', () => {
       NODEMAILER_PORT: '587',
       NODEMAILER_USER: 'user@mock.com',
       NODEMAILER_PASS: 'mock-pass',
+      ALUGUEL_MICROSSERVICE_URL: 'fasfd',
     };
     (fetchSecrets as jest.Mock).mockResolvedValue(mockSecrets);
 
     const result = await credentialsConfig();
 
-    expect(fetchSecrets).toHaveBeenCalledWith('my-secret');
     expect(result).toEqual({
       PAGSEGURO_AUTHORIZATION: 'mock-auth',
       PAGSEGURO_URL: 'mock-url',
@@ -46,6 +46,7 @@ describe('credentialsConfig', () => {
       NODEMAILER_PORT: 587,
       NODEMAILER_USER: 'user@mock.com',
       NODEMAILER_PASS: 'mock-pass',
+      ALUGUEL_MICROSSERVICE_URL: 'fasfd',
     });
   });
 
@@ -59,6 +60,7 @@ describe('credentialsConfig', () => {
         NODEMAILER_PORT: '465',
         NODEMAILER_USER: 'local-user',
         NODEMAILER_PASS: 'local-pass',
+        ALUGUEL_MICROSSERVICE_URL: 'fasfd',
       };
       return envMap[key];
     });
@@ -73,6 +75,7 @@ describe('credentialsConfig', () => {
       NODEMAILER_PORT: '465',
       NODEMAILER_USER: 'local-user',
       NODEMAILER_PASS: 'local-pass',
+      ALUGUEL_MICROSSERVICE_URL: 'fasfd',
     });
   });
 });

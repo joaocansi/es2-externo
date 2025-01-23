@@ -4,10 +4,8 @@ import { fetchSecrets } from '../@aws/secrets';
 export default async () => {
   const configService = new ConfigService();
   if (configService.get('NODE_ENV') === 'aws-prod') {
-    const secretName = configService.get('AWS_SECRET_NAME');
+    const secretName = 'prod/es2-externo';
     const secrets = await fetchSecrets(secretName);
-
-    console.log(secrets);
 
     return {
       PAGSEGURO_AUTHORIZATION: secrets.PAGSEGURO_AUTHORIZATION,
@@ -16,6 +14,7 @@ export default async () => {
       NODEMAILER_PORT: +secrets.NODEMAILER_PORT,
       NODEMAILER_USER: secrets.NODEMAILER_USER,
       NODEMAILER_PASS: secrets.NODEMAILER_PASS,
+      ALUGUEL_MICROSSERVICE_URL: secrets.ALUGUEL_MICROSSERVICE_URL,
     };
   }
 
@@ -26,5 +25,6 @@ export default async () => {
     NODEMAILER_PORT: configService.get('NODEMAILER_PORT'),
     NODEMAILER_USER: configService.get('NODEMAILER_USER'),
     NODEMAILER_PASS: configService.get('NODEMAILER_PASS'),
+    ALUGUEL_MICROSSERVICE_URL: configService.get('ALUGUEL_MICROSSERVICE_URL'),
   };
 };
