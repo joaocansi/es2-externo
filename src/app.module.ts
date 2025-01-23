@@ -32,7 +32,7 @@ const MailerModule = NestMailerModule.forRootAsync({
 const ConfigModule = NestConfigModule.forRoot({
   envFilePath: ['.env.local', '.env'],
   load: [credentialsConfig],
-  ignoreEnvFile: process.env.NODE_ENV === 'aws-prod' ? true : false,
+  ignoreEnvFile: process.env.NODE_ENV === 'aws-prod',
   isGlobal: true,
 });
 

@@ -7,3 +7,5 @@ sudo chkconfig docker on
 docker ps -q --filter "ancestor=joaocansi/es2-externo" | xargs -r docker stop | xargs -r docker rm
 docker pull joaocansi/es2-externo:${COMMIT}
 docker run -p 80:8002 -d joaocansi/es2-externo:${COMMIT}
+
+joaocansi/es2-externo:9ddb5add
