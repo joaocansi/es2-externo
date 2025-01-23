@@ -7,6 +7,8 @@ export default async () => {
     const secretName = configService.get('AWS_SECRET_NAME');
     const secrets = await fetchSecrets(secretName);
 
+    console.log(secrets);
+
     return {
       PAGSEGURO_AUTHORIZATION: secrets.PAGSEGURO_AUTHORIZATION,
       PAGSEGURO_URL: secrets.PAGSEGURO_URL,

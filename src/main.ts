@@ -12,5 +12,4 @@ async function bootstrap() {
   app.useGlobalFilters(new CustomErrorValidationFilter());
   await app.listen(process.env.PORT ?? 8002);
 }
-
 bootstrap();
