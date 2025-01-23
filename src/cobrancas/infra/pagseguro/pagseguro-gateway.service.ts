@@ -29,16 +29,7 @@ export default class PagseguroGatewayService implements GatewayService {
     );
 
     try {
-      const response = await this.pagseguroClient.post('/charges', requestBody);
-      const paymentResponse = this.processPaymentChargeResponse(response.data);
-      await this.pagseguroClient.post(
-        '/charges/' + paymentResponse.id + '/cancel',
-        {
-          amount: {
-            value: priceValidation,
-          },
-        },
-      );
+      await this.pagseguroClient.post('/charges', requestBody);
       return true;
     } catch {
       return false;
